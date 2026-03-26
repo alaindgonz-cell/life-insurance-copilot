@@ -50,7 +50,7 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | Major section breaks |
 | 3xl | 64px | Page-level spacing |
 
-Exceptions: 44px minimum touch target for interactive elements in the overlay (relevant from Phase 5 onward -- reps interact while on live calls and need reliable tap targets)
+**Component size constraint (not a spacing token):** Interactive elements in the overlay must meet a 44px minimum size (width and height) for reliable tap/click targets. This is a component sizing rule -- it applies to buttons, toggles, and tappable list items. Do NOT use 44px as a margin or padding value. Use the spacing tokens above for all margin/padding.
 
 ---
 
@@ -59,9 +59,11 @@ Exceptions: 44px minimum touch target for interactive elements in the overlay (r
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 (regular) | 1.5 |
-| Label | 12px | 500 (medium) | 1.4 |
+| Label | 12px | 400 (regular) | 1.4 |
 | Heading | 18px | 600 (semibold) | 1.2 |
 | Display | 24px | 600 (semibold) | 1.2 |
+
+**Weight consolidation:** 2 weights only -- 400 (regular) for body and label roles, 600 (semibold) for heading and display roles. No intermediate weights.
 
 **Rationale:** The overlay runs on top of RingCentral in a floating panel. Compact typography (14px body, not 16px) maximizes information density in limited overlay space. The rep needs to glance at suggestions quickly -- 14px at 1.5 line-height is readable without consuming excessive vertical space.
 
