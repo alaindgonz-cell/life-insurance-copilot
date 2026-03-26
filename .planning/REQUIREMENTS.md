@@ -1,7 +1,7 @@
 # Requirements: Life Insurance Call Copilot
 
 **Defined:** 2026-03-26
-**Core Value:** The rep never freezes on a call — the copilot always knows where they are in the flow and what to say next, increasing service-to-sale conversions while staying compliant.
+**Core Value:** The rep never freezes on a call -- the copilot always knows where they are in the flow and what to say next, increasing service-to-sale conversions while staying compliant.
 
 ## v1 Requirements
 
@@ -50,10 +50,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Learning & Self-Improvement
 
-- [ ] **LRN-01**: Post-call analysis runs after each call — AI analyzes what worked, what didn't, tone effectiveness, and psychology insights
+- [ ] **LRN-01**: Post-call analysis runs after each call -- AI analyzes what worked, what didn't, tone effectiveness, and psychology insights
 - [ ] **LRN-02**: Pattern detection across all reps' calls identifies trends (e.g., "price objection kills 60% of auto insurance angle calls")
 - [ ] **LRN-03**: AI researches sales psychology, persuasion techniques, tone, and vocabulary to generate improvement recommendations
-- [ ] **LRN-04**: Learning loop incorporates data from ALL reps — if one rep finds a killer objection response, it gets surfaced to everyone
+- [ ] **LRN-04**: Learning loop incorporates data from ALL reps -- if one rep finds a killer objection response, it gets surfaced to everyone
 - [ ] **LRN-05**: Agent proposes playbook improvements (new angles, refined scripts, better objection responses) based on accumulated call data and research
 
 ### Infrastructure
@@ -82,7 +82,7 @@ Deferred to future release. Tracked but not in current roadmap.
 ### RingCentral Integration
 
 - **RC-01**: RingCentral API integration for programmatic call audio capture (replaces Chrome Extension)
-- **RC-02**: Automatic call detection — copilot activates when call starts, deactivates when call ends
+- **RC-02**: Automatic call detection -- copilot activates when call starts, deactivates when call ends
 
 ### Team Management
 
@@ -101,7 +101,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | Feature | Reason |
 |---------|--------|
 | Twilio telephony integration | Using browser audio capture via Chrome Extension instead |
-| Mobile app | Desktop browser only — reps use RingCentral on desktop |
+| Mobile app | Desktop browser only -- reps use RingCentral on desktop |
 | Video call support | Voice calls only |
 | Outbound call initiation | Inbound service calls only for v1 |
 | CRM integration | Not needed at 2-5 rep scale |
@@ -114,46 +114,46 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUD-01 | TBD | Pending |
-| AUD-02 | TBD | Pending |
-| AUD-03 | TBD | Pending |
-| TRX-01 | TBD | Pending |
-| TRX-02 | TBD | Pending |
-| TRX-03 | TBD | Pending |
-| FLW-01 | TBD | Pending |
-| FLW-02 | TBD | Pending |
-| FLW-03 | TBD | Pending |
-| FLW-04 | TBD | Pending |
-| FLW-05 | TBD | Pending |
-| SUG-01 | TBD | Pending |
-| SUG-02 | TBD | Pending |
-| SUG-03 | TBD | Pending |
-| UI-01 | TBD | Pending |
-| UI-02 | TBD | Pending |
-| UI-03 | TBD | Pending |
-| UI-04 | TBD | Pending |
-| UI-05 | TBD | Pending |
-| DAT-01 | TBD | Pending |
-| DAT-02 | TBD | Pending |
-| DAT-03 | TBD | Pending |
-| DAT-04 | TBD | Pending |
-| LRN-01 | TBD | Pending |
-| LRN-02 | TBD | Pending |
-| LRN-03 | TBD | Pending |
-| LRN-04 | TBD | Pending |
-| LRN-05 | TBD | Pending |
-| INF-01 | TBD | Pending |
-| INF-02 | TBD | Pending |
-| INF-03 | TBD | Pending |
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
+| AUD-01 | Phase 2 | Pending |
+| AUD-02 | Phase 2 | Pending |
+| AUD-03 | Phase 2 | Pending |
+| TRX-01 | Phase 3 | Pending |
+| TRX-02 | Phase 3 | Pending |
+| TRX-03 | Phase 3 | Pending |
+| FLW-01 | Phase 4 | Pending |
+| FLW-02 | Phase 4 | Pending |
+| FLW-03 | Phase 4 | Pending |
+| FLW-04 | Phase 7 | Pending |
+| FLW-05 | Phase 10 | Pending |
+| SUG-01 | Phase 6 | Pending |
+| SUG-02 | Phase 6 | Pending |
+| SUG-03 | Phase 6 | Pending |
+| UI-01 | Phase 5 | Pending |
+| UI-02 | Phase 5 | Pending |
+| UI-03 | Phase 7 | Pending |
+| UI-04 | Phase 6 | Pending |
+| UI-05 | Phase 5 | Pending |
+| DAT-01 | Phase 9 | Pending |
+| DAT-02 | Phase 9 | Pending |
+| DAT-03 | Phase 9 | Pending |
+| DAT-04 | Phase 9 | Pending |
+| LRN-01 | Phase 10 | Pending |
+| LRN-02 | Phase 10 | Pending |
+| LRN-03 | Phase 10 | Pending |
+| LRN-04 | Phase 10 | Pending |
+| LRN-05 | Phase 10 | Pending |
+| INF-01 | Phase 1 | Pending |
+| INF-02 | Phase 1 | Pending |
+| INF-03 | Phase 1 | Pending |
+| AUTH-01 | Phase 8 | Pending |
+| AUTH-02 | Phase 8 | Pending |
+| AUTH-03 | Phase 10 | Pending |
 
 **Coverage:**
 - v1 requirements: 34 total
-- Mapped to phases: 0
-- Unmapped: 34 ⚠️
+- Mapped to phases: 34
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-26*
-*Last updated: 2026-03-26 after initial definition*
+*Last updated: 2026-03-26 after roadmap creation*
