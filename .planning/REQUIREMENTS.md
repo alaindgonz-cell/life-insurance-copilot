@@ -58,8 +58,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INF-01**: LLM provider is abstracted behind a clean interface so the model can be swapped between Anthropic API, OpenRouter, or any OpenAI-compatible API via configuration
-- [ ] **INF-02**: Model selection is configurable per inference role (e.g., use Opus for suggestions but a different model for post-call analysis) without code changes
+- [x] **INF-01**: LLM provider is abstracted behind a clean interface so the model can be swapped between Anthropic API, OpenRouter, or any OpenAI-compatible API via configuration
+- [x] **INF-02**: Model selection is configurable per inference role (e.g., use Opus for suggestions but a different model for post-call analysis) without code changes
 - [x] **INF-03**: API keys and provider endpoints are configurable via environment variables or admin settings
 
 ### Authentication & Profiles
@@ -142,8 +142,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LRN-03 | Phase 10 | Pending |
 | LRN-04 | Phase 10 | Pending |
 | LRN-05 | Phase 10 | Pending |
-| INF-01 | Phase 1 | Pending |
-| INF-02 | Phase 1 | Pending |
+| INF-01 | Phase 1 | Complete |
+| INF-02 | Phase 1 | Complete |
 | INF-03 | Phase 1 | Complete |
 | AUTH-01 | Phase 8 | Pending |
 | AUTH-02 | Phase 8 | Pending |

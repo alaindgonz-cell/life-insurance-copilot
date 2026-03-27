@@ -37,7 +37,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 3 plans
 Plans:
 - [x] 01-01-PLAN.md -- Project foundation: Docker services, typed config, DB schema, WebSocket server stub, test infra
-- [ ] 01-02-PLAN.md -- LLM provider abstraction: factory, streaming, caching, fallback, tool use
+- [x] 01-02-PLAN.md -- LLM provider abstraction: factory, streaming, caching, fallback, tool use
 - [ ] 01-03-PLAN.md -- Integration wiring: seed script, health/test endpoints, comprehensive unit tests
 
 ### Phase 2: Audio Capture Pipeline
