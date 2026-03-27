@@ -34,7 +34,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. An LLM call can be made through the provider abstraction and returns a response from Claude
   3. The LLM provider can be switched from Anthropic to OpenRouter via environment variable without code changes
   4. Different inference roles (e.g., "classification" vs "generation") can be configured to use different models
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 01-01-PLAN.md -- Project foundation: Docker services, typed config, DB schema, WebSocket server stub, test infra
+- [ ] 01-02-PLAN.md -- LLM provider abstraction: factory, streaming, caching, fallback, tool use
+- [ ] 01-03-PLAN.md -- Integration wiring: seed script, health/test endpoints, comprehensive unit tests
 
 ### Phase 2: Audio Capture Pipeline
 **Goal**: The rep's browser captures both sides of the call audio and streams it to the backend in real-time
@@ -147,7 +151,7 @@ Phase 8 depends only on Phase 1, so it could run earlier if needed.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure & Project Foundation | 0/TBD | Not started | - |
+| 1. Infrastructure & Project Foundation | 0/3 | Planning complete | - |
 | 2. Audio Capture Pipeline | 0/TBD | Not started | - |
 | 3. Real-Time Transcription | 0/TBD | Not started | - |
 | 4. Knowledge Base & Call Flow Engine | 0/TBD | Not started | - |
