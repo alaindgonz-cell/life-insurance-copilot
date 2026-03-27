@@ -1,6 +1,7 @@
-import { db } from '../db';
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import { knowledgeCards } from './schema';
-import { sql } from 'drizzle-orm';
 
 /**
  * Seed script for knowledge_cards table.
@@ -207,6 +208,14 @@ function generateCards(): SeedCard[] {
 }
 
 async function main() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is required. Set it in .env or as an environment variable.');
+  }
+
+  const pool = new Pool({ connectionString: databaseUrl });
+  const db = drizzle(pool);
+
   console.log('Seeding knowledge_cards table...');
 
   // Clear existing knowledge cards
@@ -228,6 +237,7 @@ async function main() {
 
   console.log(`Inserted ${cards.length} knowledge cards across ${ANGLES.length} angles.`);
   console.log('Seed complete.');
+  await pool.end();
   process.exit(0);
 }
 
