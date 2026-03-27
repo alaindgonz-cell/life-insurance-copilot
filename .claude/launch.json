@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "Policy Reality Check (Next.js)",
-      "runtimeExecutable": "/Users/alaingonzalez/.nvm/versions/node/v22.22.1/bin/pnpm",
-      "runtimeArgs": ["dev"],
+      "name": "nextjs",
+      "runtimeExecutable": "/Users/alaingonzalez/.nvm/versions/node/v22.22.1/bin/node",
+      "runtimeArgs": ["/Users/alaingonzalez/.nvm/versions/node/v22.22.1/bin/pnpm", "dev"],
       "port": 3000
     }
   ]
