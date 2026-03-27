@@ -36,7 +36,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Different inference roles (e.g., "classification" vs "generation") can be configured to use different models
 **Plans:** 3 plans
 Plans:
-- [ ] 01-01-PLAN.md -- Project foundation: Docker services, typed config, DB schema, WebSocket server stub, test infra
+- [x] 01-01-PLAN.md -- Project foundation: Docker services, typed config, DB schema, WebSocket server stub, test infra
 - [ ] 01-02-PLAN.md -- LLM provider abstraction: factory, streaming, caching, fallback, tool use
 - [ ] 01-03-PLAN.md -- Integration wiring: seed script, health/test endpoints, comprehensive unit tests
 
