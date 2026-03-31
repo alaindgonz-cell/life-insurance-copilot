@@ -1,5 +1,6 @@
 import type WebSocket from 'ws'
 import { sessionManager } from './sessionManager'
+import { processFinalTranscript } from './suggestionEngine'
 import { createDeepgramConnection, type TranscriptResult } from './deepgramClient'
 import { prisma } from '../lib/db/client'
 import { publishToSession } from '../lib/redis/client'
@@ -148,6 +149,11 @@ async function handleTranscriptResult(
     } catch (error) {
       console.error('[AudioHandler] DB error saving transcript:', error)
     }
+
+    // Fire suggestion engine for final transcripts
+    await processFinalTranscript(sessionId, result.speaker, result.text).catch(
+      (err) => console.error('[AudioHandler] Suggestion engine error:', err)
+    )
   }
 }
 
