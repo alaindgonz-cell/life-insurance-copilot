@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server'
-import { semanticSearch } from '@/lib/db/search'
+import { NextResponse } from 'next/server';
+import { semanticSearch } from '@/lib/db/search';
+import { logger } from '@/lib/logger';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 import { z } from 'zod'
 
 const SearchSchema = z.object({
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors }, { status: 400 })
     }
-    console.error('[API] Search error:', error)
+    logger.error({ error }, 'Search error')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

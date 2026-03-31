@@ -1,147 +1,96 @@
-import { prisma } from '../db/client'
+import { db } from '../db';
+import { calls, suggestions, users } from '../db/schema';
+import { eq, gte, count, sql } from 'drizzle-orm';
 
-export interface DailyCallCount {
-  date: string
-  count: number
-}
-
-export interface AgentStats {
-  agentId: string
-  name: string | null
-  email: string
-  totalCalls: number
-  avgDurationSeconds: number
-  suggestionsAccepted: number
-}
-
-export interface TopObjection {
-  trigger: string
-  count: number
-}
+export interface DailyCallCount { date: string; count: number; }
+export interface TopObjection { trigger: string; count: number; }
 
 export async function getDailyCallCounts(days = 30): Promise<DailyCallCount[]> {
-  const since = new Date()
-  since.setDate(since.getDate() - days)
+  const since = new Date();
+  since.setDate(since.getDate() - days);
 
-  const sessions = await prisma.callSession.findMany({
-    where: { startedAt: { gte: since } },
-    select: { startedAt: true },
-    orderBy: { startedAt: 'asc' },
-  })
+  const rows = await db.select({ startedAt: calls.startedAt })
+    .from(calls)
+    .where(gte(calls.startedAt, since));
 
-  // Group by date
-  const counts = new Map<string, number>()
-  for (const s of sessions) {
-    const date = s.startedAt.toISOString().slice(0, 10)
-    counts.set(date, (counts.get(date) ?? 0) + 1)
+  const counts = new Map<string, number>();
+  for (const r of rows) {
+    if (!r.startedAt) continue;
+    const date = r.startedAt.toISOString().slice(0, 10);
+    counts.set(date, (counts.get(date) ?? 0) + 1);
   }
 
-  // Fill in zero-count days
-  const result: DailyCallCount[] = []
+  const result: DailyCallCount[] = [];
   for (let i = days - 1; i >= 0; i--) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    const date = d.toISOString().slice(0, 10)
-    result.push({ date, count: counts.get(date) ?? 0 })
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const date = d.toISOString().slice(0, 10);
+    result.push({ date, count: counts.get(date) ?? 0 });
   }
-
-  return result
+  return result;
 }
 
 export async function getAverageCallDuration(): Promise<number> {
-  const sessions = await prisma.callSession.findMany({
-    where: {
-      status: 'ended',
-      endedAt: { not: null },
-    },
-    select: { startedAt: true, endedAt: true },
-  })
+  const rows = await db.select({ startedAt: calls.startedAt, endedAt: calls.endedAt })
+    .from(calls)
+    .where(eq(calls.status, 'ended'));
 
-  if (sessions.length === 0) return 0
+  const completed = rows.filter(r => r.endedAt && r.startedAt);
+  if (completed.length === 0) return 0;
 
-  const totalSeconds = sessions.reduce((sum, s) => {
-    if (!s.endedAt) return sum
-    return sum + (new Date(s.endedAt).getTime() - new Date(s.startedAt).getTime()) / 1000
-  }, 0)
-
-  return Math.round(totalSeconds / sessions.length)
+  const totalSeconds = completed.reduce((sum, r) => {
+    return sum + (new Date(r.endedAt!).getTime() - new Date(r.startedAt!).getTime()) / 1000;
+  }, 0);
+  return Math.round(totalSeconds / completed.length);
 }
 
 export async function getTopObjections(limit = 5): Promise<TopObjection[]> {
-  const suggestions = await prisma.aISuggestion.findMany({
-    where: { type: 'objection_handler', trigger: { not: null } },
-    select: { trigger: true },
-  })
+  const rows = await db.select({ trigger: suggestions.trigger })
+    .from(suggestions)
+    .where(eq(suggestions.type, 'objection_handler'));
 
-  const counts = new Map<string, number>()
-  for (const s of suggestions) {
-    if (!s.trigger) continue
-    counts.set(s.trigger, (counts.get(s.trigger) ?? 0) + 1)
+  const counts = new Map<string, number>();
+  for (const r of rows) {
+    if (!r.trigger) continue;
+    counts.set(r.trigger, (counts.get(r.trigger) ?? 0) + 1);
   }
 
   return Array.from(counts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
-    .map(([trigger, count]) => ({ trigger, count }))
+    .map(([trigger, count]) => ({ trigger, count }));
 }
 
-export async function getSuggestionAcceptanceRate(): Promise<{
-  total: number
-  accepted: number
-  rate: number
-}> {
-  const [total, accepted] = await Promise.all([
-    prisma.aISuggestion.count(),
-    prisma.aISuggestion.count({ where: { accepted: true } }),
-  ])
+export async function getSuggestionAcceptanceRate() {
+  const [totalResult] = await db.select({ value: count() }).from(suggestions);
+  const [acceptedResult] = await db.select({ value: count() }).from(suggestions).where(eq(suggestions.accepted, true));
 
-  return {
-    total,
-    accepted,
-    rate: total > 0 ? Math.round((accepted / total) * 100) : 0,
-  }
+  const total = totalResult?.value ?? 0;
+  const accepted = acceptedResult?.value ?? 0;
+  return { total, accepted, rate: total > 0 ? Math.round((accepted / total) * 100) : 0 };
 }
 
-export async function getAgentLeaderboard(): Promise<AgentStats[]> {
-  const users = await prisma.user.findMany({
-    include: {
-      callSessions: {
-        select: {
-          startedAt: true,
-          endedAt: true,
-          suggestions: { select: { accepted: true } },
-        },
-      },
-    },
-  })
+export async function getAgentLeaderboard() {
+  const allUsers = await db.select().from(users);
+  const allCalls = await db.select().from(calls);
+  const allSuggestions = await db.select().from(suggestions);
 
-  return users
-    .map((user) => {
-      const totalCalls = user.callSessions.length
-      const completedSessions = user.callSessions.filter((s) => s.endedAt)
-      const totalDurationSeconds =
-        completedSessions.reduce(
-          (sum, s) =>
-            sum + (s.endedAt ? (new Date(s.endedAt).getTime() - new Date(s.startedAt).getTime()) / 1000 : 0),
-          0
-        )
-      const avgDurationSeconds =
-        completedSessions.length > 0
-          ? Math.round(totalDurationSeconds / completedSessions.length)
-          : 0
+  return allUsers.map(user => {
+    const userCalls = allCalls.filter(c => c.agentId === user.id);
+    const completed = userCalls.filter(c => c.endedAt && c.startedAt);
+    const totalDuration = completed.reduce((sum, c) =>
+      sum + (new Date(c.endedAt!).getTime() - new Date(c.startedAt!).getTime()) / 1000, 0);
 
-      const suggestionsAccepted = user.callSessions
-        .flatMap((s) => s.suggestions)
-        .filter((s) => s.accepted).length
+    const callIds = new Set(userCalls.map(c => c.id));
+    const userSuggestions = allSuggestions.filter(s => s.callId && callIds.has(s.callId));
 
-      return {
-        agentId: user.id,
-        name: user.name,
-        email: user.email,
-        totalCalls,
-        avgDurationSeconds,
-        suggestionsAccepted,
-      }
-    })
-    .sort((a, b) => b.totalCalls - a.totalCalls)
+    return {
+      agentId: user.id,
+      name: user.name,
+      email: user.email,
+      totalCalls: userCalls.length,
+      avgDurationSeconds: completed.length > 0 ? Math.round(totalDuration / completed.length) : 0,
+      suggestionsAccepted: userSuggestions.filter(s => s.accepted).length,
+    };
+  }).sort((a, b) => b.totalCalls - a.totalCalls);
 }

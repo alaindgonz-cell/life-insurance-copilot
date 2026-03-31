@@ -1,36 +1,37 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/client'
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { suggestions } from '@/lib/db/schema';
+import { eq, and } from 'drizzle-orm';
+import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
-export const dynamic = 'force-dynamic'
-import { z } from 'zod'
+export const dynamic = 'force-dynamic';
 
 const UpdateSuggestionSchema = z.object({
   accepted: z.boolean().optional(),
   shown: z.boolean().optional(),
-})
+});
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string; suggestionId: string } }
+  { params }: { params: Promise<{ id: string; suggestionId: string }> }
 ) {
   try {
-    const body: unknown = await request.json()
-    const data = UpdateSuggestionSchema.parse(body)
+    const { id, suggestionId } = await params;
+    const body = await request.json();
+    const data = UpdateSuggestionSchema.parse(body);
 
-    const suggestion = await prisma.aISuggestion.update({
-      where: {
-        id: params.suggestionId,
-        sessionId: params.id,
-      },
-      data,
-    })
+    const [updated] = await db.update(suggestions)
+      .set(data)
+      .where(and(eq(suggestions.id, suggestionId), eq(suggestions.callId, id)))
+      .returning();
 
-    return NextResponse.json(suggestion)
+    return NextResponse.json(updated);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: error.errors }, { status: 400 });
     }
-    console.error('[API] Error updating suggestion:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    logger.error({ error }, 'Error updating suggestion');
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

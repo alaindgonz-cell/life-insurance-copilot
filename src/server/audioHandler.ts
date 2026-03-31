@@ -1,38 +1,42 @@
-import type WebSocket from 'ws'
-import { sessionManager } from './sessionManager'
-import { processFinalTranscript } from './suggestionEngine'
-import { createDeepgramConnection, type TranscriptResult } from './deepgramClient'
-import { prisma } from '../lib/db/client'
-import { publishToSession } from '../lib/redis/client'
-import { processTranscriptForCompliance } from './complianceEngine'
-import { scriptChecklist } from './scriptChecklist'
+import type WebSocket from 'ws';
+import { sessionManager } from './sessionManager';
+import { processFinalTranscript } from './suggestionEngine';
+import { createDeepgramConnection, type TranscriptResult } from './deepgramClient';
+import { db } from '../lib/db';
+import { calls, transcripts } from '../lib/db/schema';
+import { eq } from 'drizzle-orm';
+import { redis } from '../lib/redis';
+import { processTranscriptForCompliance } from './complianceEngine';
+import { scriptChecklist } from './scriptChecklist';
+import { logger } from '../lib/logger';
 import type {
   AudioChunkMessage,
   SessionStartMessage,
   SessionEndMessage,
   TranscriptMessage,
-} from '../types'
-import { v4 as uuidv4 } from 'uuid'
+} from '../types';
+import { v4 as uuidv4 } from 'uuid';
+
+const ahLogger = logger.child({ component: 'audio-handler' });
 
 export async function handleSessionStart(
   ws: WebSocket,
   message: SessionStartMessage
 ): Promise<void> {
-  const { sessionId, agentId } = message.payload
+  const { sessionId, agentId } = message.payload;
 
-  console.log(`[AudioHandler] Session start: ${sessionId} agent: ${agentId}`)
+  ahLogger.info({ sessionId, agentId }, 'Session start');
 
-  // Create Deepgram connection
   const deepgramConnection = createDeepgramConnection(
     sessionId,
     async (result: TranscriptResult) => {
-      await handleTranscriptResult(sessionId, result)
+      await handleTranscriptResult(sessionId, result);
     },
     (error: Error) => {
-      console.error(`[AudioHandler] Deepgram error for ${sessionId}:`, error)
-      sendToClient(ws, { type: 'error', payload: { message: error.message } })
+      ahLogger.error({ sessionId, error: error.message }, 'Deepgram error');
+      sendToClient(ws, { type: 'error', payload: { message: error.message } });
     }
-  )
+  );
 
   sessionManager.add(sessionId, {
     sessionId,
@@ -40,48 +44,45 @@ export async function handleSessionStart(
     ws,
     deepgramConnection,
     startedAt: new Date(),
-  })
+  });
 
-  // Ensure session exists in DB
+  // Upsert session in DB
   try {
-    await prisma.callSession.upsert({
-      where: { id: sessionId },
-      update: { status: 'active' },
-      create: {
-        id: sessionId,
-        agentId,
-        status: 'active',
-      },
-    })
+    const [existing] = await db.select().from(calls).where(eq(calls.id, sessionId));
+    if (existing) {
+      await db.update(calls).set({ status: 'active' }).where(eq(calls.id, sessionId));
+    } else {
+      await db.insert(calls).values({ id: sessionId, agentId, status: 'active' });
+    }
   } catch (error) {
-    console.error('[AudioHandler] DB error creating session:', error)
+    ahLogger.error({ error }, 'DB error creating session');
   }
 
-  sendToClient(ws, { type: 'session_ready', payload: { sessionId } })
+  sendToClient(ws, { type: 'session_ready', payload: { sessionId } });
 }
 
 export function handleAudioChunk(
   ws: WebSocket,
   message: AudioChunkMessage
 ): void {
-  const { sessionId, data } = message.payload
-  const session = sessionManager.get(sessionId)
+  const { sessionId, data } = message.payload;
+  const session = sessionManager.get(sessionId);
 
   if (!session || !session.isActive) {
-    console.warn(`[AudioHandler] Received audio for unknown/inactive session: ${sessionId}`)
-    return
+    ahLogger.warn({ sessionId }, 'Audio for unknown/inactive session');
+    return;
   }
 
   if (!session.deepgramConnection) {
-    console.warn(`[AudioHandler] No Deepgram connection for session: ${sessionId}`)
-    return
+    ahLogger.warn({ sessionId }, 'No Deepgram connection');
+    return;
   }
 
   try {
-    const audioBuffer = Buffer.from(data, 'base64')
-    session.deepgramConnection.send(audioBuffer as unknown as string)
+    const audioBuffer = Buffer.from(data, 'base64');
+    session.deepgramConnection.send(audioBuffer as unknown as string);
   } catch (error) {
-    console.error(`[AudioHandler] Error sending audio to Deepgram for ${sessionId}:`, error)
+    ahLogger.error({ sessionId, error }, 'Error sending audio to Deepgram');
   }
 }
 
@@ -89,29 +90,26 @@ export async function handleSessionEnd(
   ws: WebSocket,
   message: SessionEndMessage
 ): Promise<void> {
-  const { sessionId } = message.payload
-  console.log(`[AudioHandler] Session end: ${sessionId}`)
+  const { sessionId } = message.payload;
+  ahLogger.info({ sessionId }, 'Session end');
 
   try {
-    await prisma.callSession.update({
-      where: { id: sessionId },
-      data: { status: 'ended', endedAt: new Date() },
-    })
+    await db.update(calls).set({ status: 'ended', endedAt: new Date() }).where(eq(calls.id, sessionId));
   } catch (error) {
-    console.error('[AudioHandler] DB error ending session:', error)
+    ahLogger.error({ error }, 'DB error ending session');
   }
 
-  scriptChecklist.clear(sessionId)
-  sessionManager.end(sessionId)
-  sendToClient(ws, { type: 'session_ended', payload: { sessionId } })
+  scriptChecklist.clear(sessionId);
+  sessionManager.end(sessionId);
+  sendToClient(ws, { type: 'session_ended', payload: { sessionId } });
 }
 
 async function handleTranscriptResult(
   sessionId: string,
   result: TranscriptResult
 ): Promise<void> {
-  const session = sessionManager.get(sessionId)
-  if (!session) return
+  const session = sessionManager.get(sessionId);
+  if (!session) return;
 
   const transcriptMessage: TranscriptMessage = {
     type: 'transcript',
@@ -125,50 +123,44 @@ async function handleTranscriptResult(
       startMs: result.startMs,
       endMs: result.endMs,
     },
-  }
+  };
 
-  // Send to client immediately (interim or final)
-  sendToClient(session.ws, transcriptMessage)
+  sendToClient(session.ws, transcriptMessage);
 
-  // Publish to Redis for Next.js to consume
-  await publishToSession(sessionId, transcriptMessage).catch((err) =>
-    console.error('[AudioHandler] Redis publish error:', err)
-  )
+  // Publish to Redis
+  await redis.publish(`session:${sessionId}`, JSON.stringify(transcriptMessage)).catch((err) =>
+    ahLogger.error({ error: err }, 'Redis publish error')
+  );
 
-  // Persist final transcripts to DB
   if (result.isFinal) {
     try {
-      await prisma.transcript.create({
-        data: {
-          id: transcriptMessage.payload.id,
-          sessionId,
-          speaker: result.speaker,
-          text: result.text,
-          confidence: result.confidence,
-          startMs: result.startMs,
-          endMs: result.endMs,
-        },
-      })
+      await db.insert(transcripts).values({
+        id: transcriptMessage.payload.id,
+        callId: sessionId,
+        speaker: result.speaker,
+        content: result.text,
+        confidence: result.confidence,
+        startMs: result.startMs,
+        endMs: result.endMs,
+      });
     } catch (error) {
-      console.error('[AudioHandler] DB error saving transcript:', error)
+      ahLogger.error({ error }, 'DB error saving transcript');
     }
 
-    // Fire suggestion engine for final transcripts
     await processFinalTranscript(sessionId, result.speaker, result.text).catch(
-      (err) => console.error('[AudioHandler] Suggestion engine error:', err)
-    )
+      (err) => ahLogger.error({ error: err }, 'Suggestion engine error')
+    );
 
-    // Check compliance
     processTranscriptForCompliance(sessionId, result.speaker, result.text).catch(
-      (err) => console.error('[AudioHandler] Compliance check error:', err)
-    )
-    // Update script checklist
-    scriptChecklist.tick(sessionId, result.text)
+      (err) => ahLogger.error({ error: err }, 'Compliance check error')
+    );
+
+    scriptChecklist.tick(sessionId, result.text);
   }
 }
 
 function sendToClient(ws: WebSocket, message: object): void {
   if (ws.readyState === ws.OPEN) {
-    ws.send(JSON.stringify(message))
+    ws.send(JSON.stringify(message));
   }
 }

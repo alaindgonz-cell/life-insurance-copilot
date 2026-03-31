@@ -1,12 +1,13 @@
-import { NextResponse } from 'next/server'
-import { scriptChecklist } from '@/server/scriptChecklist'
+import { NextResponse } from 'next/server';
+import { scriptChecklist } from '@/server/scriptChecklist';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const progress = scriptChecklist.getProgress(params.id)
-  return NextResponse.json(progress)
+  const { id } = await params;
+  const progress = scriptChecklist.getProgress(id);
+  return NextResponse.json(progress);
 }

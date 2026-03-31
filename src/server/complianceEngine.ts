@@ -3,17 +3,21 @@
  * Checks final transcript segments against compliance rules and fires alerts.
  */
 
-import { publishToSession } from '../lib/redis/client'
-import { sessionManager } from './sessionManager'
-import { prisma } from '../lib/db/client'
-import { v4 as uuidv4 } from 'uuid'
+import { redis } from '../lib/redis';
+import { sessionManager } from './sessionManager';
+import { db } from '../lib/db';
+import { suggestions } from '../lib/db/schema';
+import { logger } from '../lib/logger';
+import { v4 as uuidv4 } from 'uuid';
+
+const ceLogger = logger.child({ component: 'compliance-engine' });
 
 interface ComplianceRule {
-  id: string
-  severity: 'warning' | 'error'
-  pattern: RegExp
-  message: string
-  correction: string
+  id: string;
+  severity: 'warning' | 'error';
+  pattern: RegExp;
+  message: string;
+  correction: string;
 }
 
 const COMPLIANCE_RULES: ComplianceRule[] = [
@@ -59,9 +63,8 @@ const COMPLIANCE_RULES: ComplianceRule[] = [
     message: 'Do not present yourself as giving financial, tax, or legal advice.',
     correction: 'Say: "I recommend consulting with a financial advisor or tax professional for..."',
   },
-]
+];
 
-// Required disclosures that should be made during a call
 const REQUIRED_DISCLOSURES = [
   {
     id: 'free-look',
@@ -71,32 +74,30 @@ const REQUIRED_DISCLOSURES = [
   {
     id: 'privacy-notice',
     keyword: 'privacy',
-    prompt:
-      'Reminder: If not yet mentioned, disclose that personal information is subject to the privacy notice.',
+    prompt: 'Reminder: If not yet mentioned, disclose that personal information is subject to the privacy notice.',
   },
-]
+];
 
 interface ComplianceAlert {
-  sessionId: string
-  ruleId: string
-  severity: 'warning' | 'error'
-  message: string
-  correction: string
-  flaggedText: string
-  timestamp: string
+  sessionId: string;
+  ruleId: string;
+  severity: 'warning' | 'error';
+  message: string;
+  correction: string;
+  flaggedText: string;
+  timestamp: string;
 }
 
-// Track disclosed items per session
-const disclosedItems = new Map<string, Set<string>>()
+const disclosedItems = new Map<string, Set<string>>();
 
 export function checkCompliance(
   sessionId: string,
   text: string
 ): ComplianceAlert[] {
-  const alerts: ComplianceAlert[] = []
+  const alerts: ComplianceAlert[] = [];
 
   for (const rule of COMPLIANCE_RULES) {
-    const match = rule.pattern.exec(text)
+    const match = rule.pattern.exec(text);
     if (match) {
       alerts.push({
         sessionId,
@@ -106,11 +107,11 @@ export function checkCompliance(
         correction: rule.correction,
         flaggedText: match[0],
         timestamp: new Date().toISOString(),
-      })
+      });
     }
   }
 
-  return alerts
+  return alerts;
 }
 
 export async function processTranscriptForCompliance(
@@ -118,66 +119,53 @@ export async function processTranscriptForCompliance(
   speaker: string,
   text: string
 ): Promise<void> {
-  // Check compliance rules (mainly on agent speech)
   if (speaker === 'agent') {
-    const alerts = checkCompliance(sessionId, text)
-
+    const alerts = checkCompliance(sessionId, text);
     for (const alert of alerts) {
-      await sendComplianceAlert(sessionId, alert)
+      await sendComplianceAlert(sessionId, alert);
     }
   }
 
-  // Check if required disclosures were made
-  const lowerText = text.toLowerCase()
+  const lowerText = text.toLowerCase();
   for (const disclosure of REQUIRED_DISCLOSURES) {
     if (lowerText.includes(disclosure.keyword)) {
       if (!disclosedItems.has(sessionId)) {
-        disclosedItems.set(sessionId, new Set())
+        disclosedItems.set(sessionId, new Set());
       }
-      disclosedItems.get(sessionId)!.add(disclosure.id)
+      disclosedItems.get(sessionId)!.add(disclosure.id);
     }
   }
 }
 
 async function sendComplianceAlert(sessionId: string, alert: ComplianceAlert): Promise<void> {
-  const message = {
-    type: 'compliance_alert',
-    payload: alert,
-  }
+  const message = { type: 'compliance_alert', payload: alert };
 
-  // Send via Redis pub/sub
-  await publishToSession(sessionId, message).catch((err) =>
-    console.error('[ComplianceEngine] Redis publish error:', err)
-  )
+  await redis.publish(`session:${sessionId}`, JSON.stringify(message)).catch((err) =>
+    ceLogger.error({ error: err }, 'Redis publish error')
+  );
 
-  // Also send directly via WS if available
-  const session = sessionManager.get(sessionId)
+  const session = sessionManager.get(sessionId);
   if (session?.ws.readyState === 1) {
-    session.ws.send(JSON.stringify(message))
+    session.ws.send(JSON.stringify(message));
   }
 
-  // Save compliance suggestion to DB
   try {
-    await prisma.aISuggestion.create({
-      data: {
-        id: uuidv4(),
-        sessionId,
-        type: 'compliance',
-        content: `${alert.message}\n\n${alert.correction}`,
-        trigger: alert.flaggedText,
-      },
-    })
+    await db.insert(suggestions).values({
+      id: uuidv4(),
+      callId: sessionId,
+      type: 'compliance',
+      content: `${alert.message}\n\n${alert.correction}`,
+      trigger: alert.flaggedText,
+    });
   } catch (err) {
-    console.error('[ComplianceEngine] DB error saving compliance alert:', err)
+    ceLogger.error({ error: err }, 'DB error saving compliance alert');
   }
 }
 
-export function getComplianceScore(sessionId: string): number {
-  // Simple heuristic: 100 base, minus 10 per violation per session
-  // In production, track violations in state
-  return 85 // placeholder
+export function getComplianceScore(_sessionId: string): number {
+  return 85; // placeholder
 }
 
 export function clearSession(sessionId: string): void {
-  disclosedItems.delete(sessionId)
+  disclosedItems.delete(sessionId);
 }

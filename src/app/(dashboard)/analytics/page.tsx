@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { formatDuration } from '@/lib/utils/format'
 import {
   getDailyCallCounts,
@@ -121,7 +123,7 @@ export default async function AnalyticsPage() {
                       <span className="text-sm font-medium text-gray-400 w-4">{i + 1}</span>
                       <div>
                         <p className="text-sm font-medium text-gray-900">
-                          {agent.name ?? agent.email.split('@')[0]}
+                          {agent.name ?? agent.email?.split('@')[0] ?? 'Unknown'}
                         </p>
                         <p className="text-xs text-gray-400">{agent.email}</p>
                       </div>

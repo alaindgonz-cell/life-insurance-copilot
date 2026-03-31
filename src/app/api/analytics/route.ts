@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 import {
   getDailyCallCounts,
   getAverageCallDuration,
@@ -28,7 +29,7 @@ export async function GET() {
       leaderboard,
     })
   } catch (error) {
-    console.error('[API] Analytics error:', error)
+    logger.error({ error }, 'Analytics error')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
