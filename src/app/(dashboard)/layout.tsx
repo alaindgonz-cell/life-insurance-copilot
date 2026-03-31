@@ -18,6 +18,7 @@ export default function DashboardLayout({
                 <a href="/dashboard" className="hover:text-brand-600">Dashboard</a>
                 <a href="/dashboard/call" className="hover:text-brand-600">Start Call</a>
                 <a href="/dashboard/history" className="hover:text-brand-600">History</a>
+                <a href="/dashboard/analytics" className="hover:text-brand-600">Analytics</a>
               </div>
               <UserMenu />
             </div>

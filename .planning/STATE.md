@@ -13,11 +13,32 @@
 | 5 | Call Session Management | ✅ Complete |
 | 6 | Agent Authentication & Multi-Tenancy | ✅ Complete |
 | 7 | Compliance & Script Guidance | ✅ Complete |
-| 8 | Analytics Dashboard | ⏳ Pending |
-| 9 | Performance & Reliability | ⏳ Pending |
-| 10 | Deployment & CI/CD | ⏳ Pending |
+| 8 | Analytics Dashboard | ✅ Complete |
+| 9 | Performance & Reliability | ✅ Complete |
+| 10 | Deployment & CI/CD | ✅ Complete |
 
-## Current Phase: 8 — Analytics Dashboard
+## Milestone v1.0: COMPLETE ✅
+
+All 10 phases have been implemented.
+
+### What Was Done in Phase 10
+- `Dockerfile`: multi-stage Next.js production build (port 3000)
+- `Dockerfile.ws`: multi-stage WebSocket server build (port 3001)
+- `.github/workflows/ci.yml`: lint + test + build CI with Postgres + Redis services
+- `.github/workflows/deploy.yml`: Docker image build on main push
+- `docs/DEPLOYMENT.md`: full deployment guide with env var docs
+
+### What Was Done in Phase 9
+- `src/lib/logger.ts`: structured JSON logger (debug/info/warn/error) with requestId/sessionId
+- `src/server/wsReconnect.ts`: exponential backoff config + jitter calculator
+- `/api/health` endpoint: DB + Redis connectivity checks, returns 200/503
+- `src/middleware.ts`: request ID injection + auth protection for dashboard routes
+
+### What Was Done in Phase 8
+- `src/lib/analytics/metrics.ts`: getDailyCallCounts, getAverageCallDuration, getTopObjections, getSuggestionAcceptanceRate, getAgentLeaderboard
+- `/api/analytics` endpoint
+- `/dashboard/analytics` page: KPI cards, bar chart, objections panel, agent leaderboard
+- Nav updated with Analytics link
 
 ### What Was Done in Phase 7
 - `complianceEngine.ts`: 6 compliance rules (guarantee, free insurance, investment promises, scare tactics, misrepresentation, unlicensed advice) with severity levels + corrections

@@ -1,0 +1,27 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: []
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker images
+        run: |
+          docker build -t life-insurance-copilot:${{ github.sha }} .
+          docker build -f Dockerfile.ws -t life-insurance-copilot-ws:${{ github.sha }} .
+
+      - name: Deploy (placeholder)
+        run: |
+          echo "Deploy step — configure for your target platform (Railway, Fly.io, ECS, etc.)"
+          echo "App image: life-insurance-copilot:${{ github.sha }}"
+          echo "WS image: life-insurance-copilot-ws:${{ github.sha }}"
