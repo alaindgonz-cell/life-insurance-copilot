@@ -17,5 +17,12 @@ const envSchema = z.object({
   WS_PORT: z.coerce.number().default(3001),
 });
 
-export const config = envSchema.parse(process.env);
 export type Config = z.infer<typeof envSchema>;
+
+let _config: Config | undefined;
+export const config: Config = new Proxy({} as Config, {
+  get(_, prop: string) {
+    if (!_config) _config = envSchema.parse(process.env);
+    return _config[prop as keyof Config];
+  },
+});

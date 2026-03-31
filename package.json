@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently --names next,ws --prefix-colors blue,green \"next dev --turbopack\" \"npx tsx --watch src/server/index.ts\"",
-    "build": "next build --turbopack",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run --reporter=verbose",

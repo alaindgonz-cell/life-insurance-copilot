@@ -26,7 +26,7 @@ describe('injectCacheControl', () => {
     const blocks = injectCacheControl('Hello system prompt', anthropicConfig);
     expect(blocks).toHaveLength(1);
     expect(blocks[0]).toHaveProperty('cache_control');
-    expect((blocks[0] as any).cache_control).toEqual({ type: 'ephemeral' });
+    expect((blocks[0] as Record<string, unknown>).cache_control).toEqual({ type: 'ephemeral' });
   });
 
   it('does NOT add cache_control when provider is openrouter', () => {
@@ -51,7 +51,7 @@ describe('injectCacheControl', () => {
     expect(blocks).toHaveLength(2);
     // Only last block should have cache_control
     expect(blocks[0]).not.toHaveProperty('cache_control');
-    expect((blocks[1] as any).cache_control).toEqual({ type: 'ephemeral' });
+    expect((blocks[1] as Record<string, unknown>).cache_control).toEqual({ type: 'ephemeral' });
   });
 
   it('returns original blocks unchanged for openrouter with array input', () => {

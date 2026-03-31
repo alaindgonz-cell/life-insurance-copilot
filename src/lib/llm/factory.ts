@@ -1,9 +1,12 @@
+import type Anthropic from '@anthropic-ai/sdk';
 import type { InferenceRole, LLMCallParams, LLMResponse } from './types';
 import { getLLMConfig } from './config';
 import { callWithFallback } from './fallback';
 import { logger } from '../logger';
 import { db } from '../db';
 import { llmLogs } from '../db/schema';
+
+type ContentBlock = Anthropic.ContentBlock;
 
 const factoryLogger = logger.child({ component: 'llm-factory' });
 
@@ -52,13 +55,15 @@ export function createLLMClient(role: InferenceRole): LLMClient {
       const finalMessage = await stream.finalMessage();
       const latencyMs = Date.now() - startTime;
 
-      const content = finalMessage.content
-        .filter((block): block is { type: 'text'; text: string } => block.type === 'text')
+      const blocks = finalMessage.content as ContentBlock[];
+
+      const content = blocks
+        .filter((block): block is Extract<ContentBlock, { type: 'text' }> => block.type === 'text')
         .map((block) => block.text)
         .join('');
 
-      const toolCalls = finalMessage.content.filter(
-        (block): block is Extract<typeof block, { type: 'tool_use' }> => block.type === 'tool_use'
+      const toolCalls = blocks.filter(
+        (block): block is Extract<ContentBlock, { type: 'tool_use' }> => block.type === 'tool_use'
       );
 
       const response: LLMResponse = {
@@ -67,8 +72,8 @@ export function createLLMClient(role: InferenceRole): LLMClient {
         usage: {
           inputTokens: finalMessage.usage.input_tokens,
           outputTokens: finalMessage.usage.output_tokens,
-          cacheReadTokens: (finalMessage.usage as any).cache_read_input_tokens,
-          cacheCreationTokens: (finalMessage.usage as any).cache_creation_input_tokens,
+          cacheReadTokens: (finalMessage.usage as Record<string, number>).cache_read_input_tokens,
+          cacheCreationTokens: (finalMessage.usage as Record<string, number>).cache_creation_input_tokens,
         },
         model,
         provider,

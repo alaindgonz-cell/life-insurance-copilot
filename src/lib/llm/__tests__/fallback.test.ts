@@ -23,7 +23,7 @@ import { isRetryableError } from '../fallback';
  */
 
 // Helper to create a minimal Headers-like object for APIError constructor
-const fakeHeaders = { get: () => null } as any;
+const fakeHeaders = { get: () => null } as unknown as Headers;
 
 describe('isRetryableError', () => {
   it('returns true for RateLimitError', () => {

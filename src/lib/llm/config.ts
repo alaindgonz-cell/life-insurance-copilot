@@ -4,11 +4,13 @@ import type { InferenceRole, RoleConfig, LLMProviderConfig } from './types';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api';
 
 function makePrimary(model: string): LLMProviderConfig {
+  // Detect if using OpenRouter key (allows all roles to route via OpenRouter temporarily)
+  const isOpenRouterKey = config.ANTHROPIC_API_KEY.startsWith('sk-or-');
   return {
-    provider: 'anthropic',
+    provider: isOpenRouterKey ? 'openrouter' : 'anthropic',
     model,
     apiKey: config.ANTHROPIC_API_KEY,
-    // baseUrl undefined = default Anthropic API
+    ...(isOpenRouterKey ? { baseUrl: OPENROUTER_BASE_URL } : {}),
   };
 }
 
