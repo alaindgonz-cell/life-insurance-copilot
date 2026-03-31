@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/client'
+
+export const dynamic = 'force-dynamic'
 import { z } from 'zod'
 import { embedProduct } from '@/lib/embeddings/pipeline'
 
