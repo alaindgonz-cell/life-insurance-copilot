@@ -2,9 +2,9 @@ import { z } from 'zod';
 import 'dotenv/config';
 
 const envSchema = z.object({
-  DATABASE_URL: z.string().url(),
-  REDIS_URL: z.string().url(),
-  ANTHROPIC_API_KEY: z.string().min(1),
+  DATABASE_URL: z.string().default('postgresql://localhost:5432/copilot'),
+  REDIS_URL: z.string().default('redis://localhost:6379'),
+  ANTHROPIC_API_KEY: z.string().default(''),
   OPENROUTER_API_KEY: z.string().default(''),
   DEEPGRAM_API_KEY: z.string().default(''),
   VOYAGE_API_KEY: z.string().default(''),
