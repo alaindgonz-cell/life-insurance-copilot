@@ -10,14 +10,23 @@
 | 2 | Audio Capture Pipeline | ✅ Complete |
 | 3 | Real-Time AI Suggestions Engine | ✅ Complete |
 | 4 | Product Knowledge Base & Vector Search | ✅ Complete |
-| 5 | Call Session Management | ⏳ Pending |
+| 5 | Call Session Management | ✅ Complete |
 | 6 | Agent Authentication & Multi-Tenancy | ⏳ Pending |
 | 7 | Compliance & Script Guidance | ⏳ Pending |
 | 8 | Analytics Dashboard | ⏳ Pending |
 | 9 | Performance & Reliability | ⏳ Pending |
 | 10 | Deployment & CI/CD | ⏳ Pending |
 
-## Current Phase: 5 — Call Session Management
+## Current Phase: 6 — Agent Authentication & Multi-Tenancy
+
+### What Was Done in Phase 5
+- `/dashboard/history` page: session table with duration, transcript count, suggestions count
+- `/dashboard/sessions/[id]` page: transcript replay (chat bubbles), AI suggestion sidebar, metadata cards
+- `/api/sessions/[id]/export` GET: plain-text transcript download
+- `src/lib/utils/format.ts`: formatDuration, formatDate, formatPhone utilities
+- `<ProspectInfoForm>`: collects name/phone before call starts
+- Dashboard page updated with live stats from DB (async server component)
+- Nav updated with History link
 
 ### What Was Done in Phase 4
 - `src/lib/embeddings/client.ts`: Anthropic voyage-3 embedding API wrapper

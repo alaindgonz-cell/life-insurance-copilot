@@ -64,7 +64,7 @@ model Product {
   features      String[]
   targetAge     String?
   priceRange    String?
-  embedding     Unsupported("vector(1536)")?
+  embedding     Unsupported("vector(1024)")?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -75,7 +75,7 @@ model KnowledgeBase {
   title         String
   content       String
   tags          String[]
-  embedding     Unsupported("vector(1536)")?
+  embedding     Unsupported("vector(1024)")?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }

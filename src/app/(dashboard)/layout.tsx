@@ -14,6 +14,7 @@ export default function DashboardLayout({
             <div className="flex gap-4 text-sm text-gray-600">
               <a href="/dashboard" className="hover:text-brand-600">Dashboard</a>
               <a href="/dashboard/call" className="hover:text-brand-600">Start Call</a>
+              <a href="/dashboard/history" className="hover:text-brand-600">History</a>
             </div>
           </div>
         </div>

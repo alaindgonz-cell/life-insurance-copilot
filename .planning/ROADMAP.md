@@ -60,17 +60,17 @@ Success Criteria:
 
 ---
 
-### Phase 5: Call Session Management
-**Status**: Pending
+### Phase 5: Call Session Management ✅
+**Status**: Complete
 **Goal**: Full lifecycle management of call sessions
 
 Success Criteria:
-- [ ] Start/end call session flow in UI
-- [ ] Session timer and status indicator
-- [ ] Prospect info capture (name, phone) before call
-- [ ] Call history page with session list
-- [ ] Session detail page with full transcript replay
-- [ ] Export transcript as PDF/text
+- [x] Start/end call session flow in UI
+- [x] Session timer and status indicator
+- [x] Prospect info capture (name, phone) before call
+- [x] Call history page with session list
+- [x] Session detail page with full transcript replay
+- [x] Export transcript as PDF/text
 
 ---
 
