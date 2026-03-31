@@ -1,43 +1,33 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/client'
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { redis } from '@/lib/redis';
+import { sql } from 'drizzle-orm';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const health: {
-    status: string
-    timestamp: string
-    checks: Record<string, { status: string; latencyMs?: number; error?: string }>
-  } = {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    checks: {},
-  }
+  const checks: Record<string, { status: string; latencyMs?: number }> = {};
 
-  // Database check
-  const dbStart = Date.now()
   try {
-    await prisma.$queryRaw`SELECT 1`
-    health.checks.database = { status: 'ok', latencyMs: Date.now() - dbStart }
-  } catch (error) {
-    health.checks.database = {
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }
-    health.status = 'degraded'
-  }
-
-  // Redis check (optional — don't fail health if Redis is down)
-  try {
-    const { getRedisClient } = await import('@/lib/redis/client')
-    const redisStart = Date.now()
-    const client = await getRedisClient()
-    await client.ping()
-    health.checks.redis = { status: 'ok', latencyMs: Date.now() - redisStart }
+    const start = Date.now();
+    await db.execute(sql`SELECT 1`);
+    checks.postgres = { status: 'ok', latencyMs: Date.now() - start };
   } catch {
-    health.checks.redis = { status: 'degraded', error: 'Redis unavailable' }
+    checks.postgres = { status: 'error' };
   }
 
-  const statusCode = health.status === 'ok' ? 200 : 503
-  return NextResponse.json(health, { status: statusCode })
+  try {
+    const start = Date.now();
+    await redis.ping();
+    checks.redis = { status: 'ok', latencyMs: Date.now() - start };
+  } catch {
+    checks.redis = { status: 'error' };
+  }
+
+  const allHealthy = Object.values(checks).every((c) => c.status === 'ok');
+
+  return NextResponse.json(
+    { status: allHealthy ? 'healthy' : 'degraded', checks, timestamp: new Date().toISOString() },
+    { status: allHealthy ? 200 : 503 }
+  );
 }

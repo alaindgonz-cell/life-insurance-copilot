@@ -1,28 +1,31 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/client'
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { calls, transcripts, suggestions } from '@/lib/db/schema';
+import { eq, asc } from 'drizzle-orm';
+import { logger } from '@/lib/logger';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await prisma.callSession.findUnique({
-      where: { id: params.id },
-      include: {
-        transcript: { orderBy: { timestamp: 'asc' } },
-        suggestions: { orderBy: { createdAt: 'asc' } },
-      },
-    })
+    const { id } = await params;
+    const [session] = await db.select().from(calls).where(eq(calls.id, id));
 
     if (!session) {
-      return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    return NextResponse.json(session)
+    const sessionTranscripts = await db.select().from(transcripts)
+      .where(eq(transcripts.callId, id)).orderBy(asc(transcripts.timestamp));
+    const sessionSuggestions = await db.select().from(suggestions)
+      .where(eq(suggestions.callId, id)).orderBy(asc(suggestions.createdAt));
+
+    return NextResponse.json({ ...session, transcripts: sessionTranscripts, suggestions: sessionSuggestions });
   } catch (error) {
-    console.error('[API] Error fetching session:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    logger.error({ error }, 'Error fetching session');
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

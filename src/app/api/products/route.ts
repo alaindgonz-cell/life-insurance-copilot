@@ -1,9 +1,12 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/client'
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { products } from '@/lib/db/schema';
+import { desc } from 'drizzle-orm';
+import { z } from 'zod';
+import { embedProduct } from '@/lib/embeddings/pipeline';
+import { logger } from '@/lib/logger';
 
-export const dynamic = 'force-dynamic'
-import { z } from 'zod'
-import { embedProduct } from '@/lib/embeddings/pipeline'
+export const dynamic = 'force-dynamic';
 
 const CreateProductSchema = z.object({
   name: z.string().min(1),
@@ -12,48 +15,37 @@ const CreateProductSchema = z.object({
   features: z.array(z.string()),
   targetAge: z.string().optional(),
   priceRange: z.string().optional(),
-})
+});
 
 export async function GET() {
   try {
-    const products = await prisma.product.findMany({
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        category: true,
-        description: true,
-        features: true,
-        targetAge: true,
-        priceRange: true,
-        createdAt: true,
-      },
-    })
-    return NextResponse.json(products)
+    const allProducts = await db.select({
+      id: products.id, name: products.name, category: products.category,
+      description: products.description, features: products.features,
+      targetAge: products.targetAge, priceRange: products.priceRange,
+      createdAt: products.createdAt,
+    }).from(products).orderBy(desc(products.createdAt));
+    return NextResponse.json(allProducts);
   } catch (error) {
-    console.error('[API] Error listing products:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    logger.error({ error }, 'Error listing products');
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body: unknown = await request.json()
-    const data = CreateProductSchema.parse(body)
+    const body = await request.json();
+    const data = CreateProductSchema.parse(body);
 
-    const product = await prisma.product.create({ data })
+    const [product] = await db.insert(products).values(data).returning();
+    embedProduct(product.id).catch(err => logger.error({ error: err }, `Failed to embed product ${product.id}`));
 
-    // Generate embedding in background
-    embedProduct(product.id).catch((err) =>
-      console.error(`[API] Failed to embed product ${product.id}:`, err)
-    )
-
-    return NextResponse.json(product, { status: 201 })
+    return NextResponse.json(product, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: error.errors }, { status: 400 });
     }
-    console.error('[API] Error creating product:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    logger.error({ error }, 'Error creating product');
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

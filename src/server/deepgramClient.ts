@@ -1,16 +1,18 @@
-import { createClient, LiveTranscriptionEvents, type LiveClient } from '@deepgram/sdk'
-import { v4 as uuidv4 } from 'uuid'
+import { createClient, LiveTranscriptionEvents, type LiveClient } from '@deepgram/sdk';
+import { config } from '../lib/config';
+import { logger } from '../lib/logger';
 
-const deepgram = createClient(process.env.DEEPGRAM_API_KEY || '')
+const dgLogger = logger.child({ component: 'deepgram' });
+const deepgram = createClient(config.DEEPGRAM_API_KEY);
 
 export interface TranscriptResult {
-  sessionId: string
-  text: string
-  speaker: string
-  confidence: number
-  startMs: number
-  endMs: number
-  isFinal: boolean
+  sessionId: string;
+  text: string;
+  speaker: string;
+  confidence: number;
+  startMs: number;
+  endMs: number;
+  isFinal: boolean;
 }
 
 export function createDeepgramConnection(
@@ -27,19 +29,19 @@ export function createDeepgramConnection(
     encoding: 'linear16',
     sample_rate: 16000,
     channels: 1,
-  })
+  });
 
   connection.on(LiveTranscriptionEvents.Open, () => {
-    console.log(`[Deepgram] Connection opened for session ${sessionId}`)
-  })
+    dgLogger.info({ sessionId }, 'Connection opened');
+  });
 
   connection.on(LiveTranscriptionEvents.Transcript, (data) => {
-    const alt = data.channel?.alternatives?.[0]
-    if (!alt || !alt.transcript || alt.transcript.trim() === '') return
+    const alt = data.channel?.alternatives?.[0];
+    if (!alt || !alt.transcript || alt.transcript.trim() === '') return;
 
-    const words = alt.words || []
-    const startMs = words.length > 0 ? Math.round((words[0].start || 0) * 1000) : 0
-    const endMs = words.length > 0 ? Math.round((words[words.length - 1].end || 0) * 1000) : 0
+    const words = alt.words || [];
+    const startMs = words.length > 0 ? Math.round((words[0].start || 0) * 1000) : 0;
+    const endMs = words.length > 0 ? Math.round((words[words.length - 1].end || 0) * 1000) : 0;
 
     onTranscript({
       sessionId,
@@ -48,18 +50,18 @@ export function createDeepgramConnection(
       confidence: alt.confidence || 0,
       startMs,
       endMs,
-      isFinal: !data.is_final ? false : true,
-    })
-  })
+      isFinal: data.is_final !== false,
+    });
+  });
 
   connection.on(LiveTranscriptionEvents.Error, (error) => {
-    console.error(`[Deepgram] Error for session ${sessionId}:`, error)
-    onError(new Error(String(error)))
-  })
+    dgLogger.error({ sessionId, error }, 'Deepgram error');
+    onError(new Error(String(error)));
+  });
 
   connection.on(LiveTranscriptionEvents.Close, () => {
-    console.log(`[Deepgram] Connection closed for session ${sessionId}`)
-  })
+    dgLogger.info({ sessionId }, 'Connection closed');
+  });
 
-  return connection
+  return connection;
 }

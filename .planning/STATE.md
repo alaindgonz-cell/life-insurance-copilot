@@ -1,111 +1,90 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: verifying
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-03-27T17:29:50.148Z"
+last_activity: 2026-03-27
+progress:
+  total_phases: 10
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
+  percent: 0
+---
+
 # Project State
 
-## Current Milestone: v1.0 — Core Call Copilot MVP
+## Project Reference
 
-## Phase Progress
+See: .planning/PROJECT.md (updated 2026-03-26)
 
-| Phase | Name | Status |
-|-------|------|--------|
-| 1 | Project Foundation & Infrastructure | ✅ Complete |
-| 2 | Audio Capture Pipeline | ✅ Complete |
-| 3 | Real-Time AI Suggestions Engine | ✅ Complete |
-| 4 | Product Knowledge Base & Vector Search | ✅ Complete |
-| 5 | Call Session Management | ✅ Complete |
-| 6 | Agent Authentication & Multi-Tenancy | ✅ Complete |
-| 7 | Compliance & Script Guidance | ✅ Complete |
-| 8 | Analytics Dashboard | ✅ Complete |
-| 9 | Performance & Reliability | ✅ Complete |
-| 10 | Deployment & CI/CD | ✅ Complete |
+**Core value:** The rep never freezes on a call -- the copilot always knows where they are in the flow and what to say next, increasing service-to-sale conversions while staying compliant.
+**Current focus:** Phase 01 — infrastructure-project-foundation
 
-## Milestone v1.0: COMPLETE ✅
+## Current Position
 
-All 10 phases have been implemented.
+Phase: 2
+Plan: Not started
+Status: Phase complete — ready for verification
+Last activity: 2026-03-27
 
-### What Was Done in Phase 10
-- `Dockerfile`: multi-stage Next.js production build (port 3000)
-- `Dockerfile.ws`: multi-stage WebSocket server build (port 3001)
-- `.github/workflows/ci.yml`: lint + test + build CI with Postgres + Redis services
-- `.github/workflows/deploy.yml`: Docker image build on main push
-- `docs/DEPLOYMENT.md`: full deployment guide with env var docs
+Progress: [░░░░░░░░░░] 0%
 
-### What Was Done in Phase 9
-- `src/lib/logger.ts`: structured JSON logger (debug/info/warn/error) with requestId/sessionId
-- `src/server/wsReconnect.ts`: exponential backoff config + jitter calculator
-- `/api/health` endpoint: DB + Redis connectivity checks, returns 200/503
-- `src/middleware.ts`: request ID injection + auth protection for dashboard routes
+## Performance Metrics
 
-### What Was Done in Phase 8
-- `src/lib/analytics/metrics.ts`: getDailyCallCounts, getAverageCallDuration, getTopObjections, getSuggestionAcceptanceRate, getAgentLeaderboard
-- `/api/analytics` endpoint
-- `/dashboard/analytics` page: KPI cards, bar chart, objections panel, agent leaderboard
-- Nav updated with Analytics link
+**Velocity:**
 
-### What Was Done in Phase 7
-- `complianceEngine.ts`: 6 compliance rules (guarantee, free insurance, investment promises, scare tactics, misrepresentation, unlicensed advice) with severity levels + corrections
-- `scriptChecklist.ts`: tracks 7 required/optional script phases per session; scores completion %
-- `ComplianceAlert.tsx`: red/yellow alert cards with flagged text and correction guidance
-- `ScriptChecklist.tsx`: visual progress checklist with % score badge
-- `audioHandler.ts` updated: calls `processTranscriptForCompliance` + `scriptChecklist.tick`
-- `/api/sessions/[id]/checklist` endpoint for live checklist progress
-- Tests for compliance engine (4 cases) and script checklist (3 cases)
+- Total plans completed: 0
+- Average duration: -
+- Total execution time: 0 hours
 
-### What Was Done in Phase 6
-- NextAuth.js credentials provider with JWT strategy
-- `src/types/next-auth.d.ts`: session type augmentation (id, role fields)
-- `/login` page: email/password form with error handling
-- `requireAuth()`, `requireRole()` server helpers with redirect
-- `<UserMenu>` client component: avatar, name, role, sign out
-- `<Providers>`: SessionProvider wrapper for client components
-- Root layout and dashboard layout updated to include auth
+**By Phase:**
 
-### What Was Done in Phase 5
-- `/dashboard/history` page: session table with duration, transcript count, suggestions count
-- `/dashboard/sessions/[id]` page: transcript replay (chat bubbles), AI suggestion sidebar, metadata cards
-- `/api/sessions/[id]/export` GET: plain-text transcript download
-- `src/lib/utils/format.ts`: formatDuration, formatDate, formatPhone utilities
-- `<ProspectInfoForm>`: collects name/phone before call starts
-- Dashboard page updated with live stats from DB (async server component)
-- Nav updated with History link
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
 
-### What Was Done in Phase 4
-- `src/lib/embeddings/client.ts`: Anthropic voyage-3 embedding API wrapper
-- `src/lib/embeddings/pipeline.ts`: `embedProduct`, `embedKnowledgeEntry`, `embedAll` batch runner
-- `src/lib/db/search.ts`: `semanticSearch`, `searchProducts`, `searchKnowledge` — pgvector cosine similarity queries
-- `prisma/seed.ts`: 5 insurance products + 8 knowledge base entries (objections, compliance, scripts, FAQ)
-- `scripts/embed-all.ts`: CLI script for batch embedding (`npm run db:embed`)
-- `/api/search` GET endpoint: semantic search across products + knowledge
-- `/api/products` GET/POST endpoints with auto-embedding on create
-- `/api/knowledge` GET/POST endpoints with auto-embedding on create
-- `suggestionEngine.ts` updated: vector search grounds Claude suggestions with relevant product/KB context
+**Recent Trend:**
 
-### What Was Done in Phase 3
-- `triggerDetector.ts`: keyword matching for 4 suggestion types (objection_handler, product_info, compliance, tip)
-- `transcriptBuffer.ts`: per-session sliding window (20 segments), formats context for Claude
-- `suggestionEngine.ts`: orchestrates trigger detection → Claude API → DB persistence → WebSocket delivery; 8s debounce
-- `audioHandler.ts` updated: calls `processFinalTranscript` after final transcript saved
-- `<SuggestionCard>`: styled card with type badge, content, dismiss/accept actions
-- `<SuggestionPanel>`: list of cards with listening state, accept API calls
-- `<CallView>`: two-column layout (transcript + suggestions panel)
-- `/api/sessions/[id]/suggestions/[suggestionId]` PATCH endpoint
-- Unit tests for triggerDetector and transcriptBuffer
+- Last 5 plans: -
+- Trend: -
 
-### What Was Done in Phase 2
-- `useAudioCapture` hook: MediaRecorder + mic permission, 250ms PCM chunks, base64 transport
-- `useWebSocket` hook: reconnection logic, JSON message parsing
-- `useCallSession` hook: orchestrates audio + WS + session lifecycle
-- WebSocket server (`src/server/`) on port 3001: session manager, audio handler, Deepgram client
-- Deepgram streaming STT: nova-2 model, 16kHz, interim + final transcripts
-- Transcript segments persisted to PostgreSQL via Prisma
-- Redis pub/sub: bridges WS server transcripts to Next.js
-- `<TranscriptFeed>`, `<AudioControls>`, `<CallSession>` components
-- `/api/sessions` REST endpoints (POST create, GET list, GET by id)
-- `/dashboard/call` page: live call interface
-- Unit tests for audioHandler and useAudioCapture
+*Updated after each plan completion*
+| Phase 01 P01 | 5min | 3 tasks | 16 files |
+| Phase 01 P02 | 2min | 2 tasks | 6 files |
+| Phase 01 P03 | 5min | 2 tasks | 9 files |
 
-### Last Updated
-2026-03-31
+## Accumulated Context
 
-### Notes
-- WebSocket server runs on port 3001 (separate from Next.js on 3000)
-- Audio format: 16kHz PCM16 for Deepgram compatibility
-- Redis pub/sub used to bridge WS server events to Next.js API routes
+### Decisions
+
+Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting current work:
+
+- [Roadmap]: Build order prioritizes end-to-end pipeline (infra -> audio -> transcription -> flow engine -> UI -> suggestions) before layering on discipline, auth, data capture, and learning
+- [Roadmap]: Chrome Extension for tab audio capture (not getDisplayMedia) per requirements
+- [Roadmap]: Auth (Phase 8) deferred after core pipeline since single-user is sufficient for day-one usage
+- [Phase 01]: Zod config module calls envSchema.parse() at module scope for crash-early validation
+- [Phase 01]: WebSocket server runs as separate process alongside Next.js via concurrently, using config.WS_PORT
+- [Phase 01]: Single Anthropic SDK for both providers -- OpenRouter works via baseURL swap (Anthropic Skin compatibility)
+- [Phase 01]: Streaming-first LLM interface: stream() is default, call() wraps for convenience
+- [Phase 01]: Fire-and-forget DB logging for LLM calls -- never blocks response path
+- [Phase 01]: Seed script uses 16 angles with 3 cards each (greeting/hook/close) for 48 total knowledge cards
+- [Phase 01]: Unit tests use vi.stubEnv and vi.mock for logger to isolate crash-early config from test environment
+
+### Pending Todos
+
+None yet.
+
+### Blockers/Concerns
+
+- Research flagged: getDisplayMedia vs Chrome Extension decision for tab audio -- requirements specify Chrome Extension but research notes this is higher effort than getDisplayMedia for day one
+- Research flagged: Embedding model selection needed for Phase 4 (pgvector knowledge base) -- Anthropic has no embeddings API
+
+## Session Continuity
+
+Last session: 2026-03-27T17:25:28.618Z
+Stopped at: Completed 01-03-PLAN.md
+Resume file: None

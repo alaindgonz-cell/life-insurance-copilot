@@ -1,21 +1,35 @@
-import Link from 'next/link'
-import { prisma } from '@/lib/db/client'
+export const dynamic = 'force-dynamic';
+
+import Link from 'next/link';
+import { db } from '@/lib/db';
+import { calls, suggestions, transcripts } from '@/lib/db/schema';
+import { eq, gte, count, desc } from 'drizzle-orm';
 
 export default async function DashboardPage() {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  const [activeCalls, todayCalls, totalSuggestions] = await Promise.all([
-    prisma.callSession.count({ where: { status: 'active' } }),
-    prisma.callSession.count({ where: { startedAt: { gte: today } } }),
-    prisma.aISuggestion.count({ where: { accepted: true } }),
-  ])
+  const [[activeResult], [todayResult], [suggestionsResult]] = await Promise.all([
+    db.select({ value: count() }).from(calls).where(eq(calls.status, 'active')),
+    db.select({ value: count() }).from(calls).where(gte(calls.startedAt, today)),
+    db.select({ value: count() }).from(suggestions).where(eq(suggestions.accepted, true)),
+  ]);
 
-  const recentSessions = await prisma.callSession.findMany({
-    orderBy: { startedAt: 'desc' },
-    take: 5,
-    include: { _count: { select: { transcript: true } } },
-  })
+  const activeCalls = activeResult?.value ?? 0;
+  const todayCalls = todayResult?.value ?? 0;
+  const totalSuggestions = suggestionsResult?.value ?? 0;
+
+  const recentSessions = await db.select().from(calls).orderBy(desc(calls.startedAt)).limit(5);
+
+  // Get transcript counts for recent sessions
+  const sessionIds = recentSessions.map(s => s.id);
+  const transcriptCounts = new Map<string, number>();
+  if (sessionIds.length > 0) {
+    for (const sid of sessionIds) {
+      const [result] = await db.select({ value: count() }).from(transcripts).where(eq(transcripts.callId, sid));
+      transcriptCounts.set(sid, result?.value ?? 0);
+    }
+  }
 
   return (
     <div>
@@ -29,7 +43,6 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {[
           { label: 'Active Calls', value: activeCalls, color: 'text-green-600' },
@@ -43,7 +56,6 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* Recent calls */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Recent Calls</h2>
@@ -71,7 +83,7 @@ export default async function DashboardPage() {
                       {s.prospectName ?? 'Unknown Prospect'}
                     </p>
                     <p className="text-xs text-gray-400">
-                      {new Date(s.startedAt).toLocaleDateString()} · {s._count.transcript} transcript lines
+                      {s.startedAt ? new Date(s.startedAt).toLocaleDateString() : ''} · {transcriptCounts.get(s.id) ?? 0} transcript lines
                     </p>
                   </div>
                   <span
@@ -90,5 +102,5 @@ export default async function DashboardPage() {
         )}
       </div>
     </div>
-  )
+  );
 }
