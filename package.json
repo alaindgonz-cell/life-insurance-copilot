@@ -13,7 +13,8 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "ts-node --project tsconfig.server.json prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:embed": "ts-node --project tsconfig.server.json scripts/embed-all.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.3",

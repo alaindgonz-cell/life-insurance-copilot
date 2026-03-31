@@ -9,7 +9,7 @@
 | 1 | Project Foundation & Infrastructure | ✅ Complete |
 | 2 | Audio Capture Pipeline | ✅ Complete |
 | 3 | Real-Time AI Suggestions Engine | ✅ Complete |
-| 4 | Product Knowledge Base & Vector Search | ⏳ Pending |
+| 4 | Product Knowledge Base & Vector Search | ✅ Complete |
 | 5 | Call Session Management | ⏳ Pending |
 | 6 | Agent Authentication & Multi-Tenancy | ⏳ Pending |
 | 7 | Compliance & Script Guidance | ⏳ Pending |
@@ -17,7 +17,18 @@
 | 9 | Performance & Reliability | ⏳ Pending |
 | 10 | Deployment & CI/CD | ⏳ Pending |
 
-## Current Phase: 4 — Product Knowledge Base & Vector Search
+## Current Phase: 5 — Call Session Management
+
+### What Was Done in Phase 4
+- `src/lib/embeddings/client.ts`: Anthropic voyage-3 embedding API wrapper
+- `src/lib/embeddings/pipeline.ts`: `embedProduct`, `embedKnowledgeEntry`, `embedAll` batch runner
+- `src/lib/db/search.ts`: `semanticSearch`, `searchProducts`, `searchKnowledge` — pgvector cosine similarity queries
+- `prisma/seed.ts`: 5 insurance products + 8 knowledge base entries (objections, compliance, scripts, FAQ)
+- `scripts/embed-all.ts`: CLI script for batch embedding (`npm run db:embed`)
+- `/api/search` GET endpoint: semantic search across products + knowledge
+- `/api/products` GET/POST endpoints with auto-embedding on create
+- `/api/knowledge` GET/POST endpoints with auto-embedding on create
+- `suggestionEngine.ts` updated: vector search grounds Claude suggestions with relevant product/KB context
 
 ### What Was Done in Phase 3
 - `triggerDetector.ts`: keyword matching for 4 suggestion types (objection_handler, product_info, compliance, tip)

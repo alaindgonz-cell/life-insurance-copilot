@@ -63,7 +63,20 @@ async function generateAndSendSuggestion(
 
   console.log(`[SuggestionEngine] Generating ${type} suggestion for session ${sessionId}`)
 
-  const content = await generateSuggestion(context, type)
+  // Fetch relevant knowledge/product context via vector search
+  let groundingContext = ''
+  try {
+    const { semanticSearch } = await import('../lib/db/search')
+    const searchResults = await semanticSearch(trigger || context.slice(-200), { topK: 3 })
+    if (searchResults.length > 0) {
+      groundingContext = '\n\nRelevant product/knowledge context:\n' +
+        searchResults.map((r) => `- ${r.title}: ${r.content.slice(0, 200)}`).join('\n')
+    }
+  } catch {
+    // Non-fatal — proceed without grounding
+  }
+
+  const content = await generateSuggestion(context + groundingContext, type)
 
   const suggestion = {
     id: uuidv4(),
