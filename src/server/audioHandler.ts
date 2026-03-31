@@ -4,6 +4,8 @@ import { processFinalTranscript } from './suggestionEngine'
 import { createDeepgramConnection, type TranscriptResult } from './deepgramClient'
 import { prisma } from '../lib/db/client'
 import { publishToSession } from '../lib/redis/client'
+import { processTranscriptForCompliance } from './complianceEngine'
+import { scriptChecklist } from './scriptChecklist'
 import type {
   AudioChunkMessage,
   SessionStartMessage,
@@ -99,6 +101,7 @@ export async function handleSessionEnd(
     console.error('[AudioHandler] DB error ending session:', error)
   }
 
+  scriptChecklist.clear(sessionId)
   sessionManager.end(sessionId)
   sendToClient(ws, { type: 'session_ended', payload: { sessionId } })
 }
@@ -154,6 +157,13 @@ async function handleTranscriptResult(
     await processFinalTranscript(sessionId, result.speaker, result.text).catch(
       (err) => console.error('[AudioHandler] Suggestion engine error:', err)
     )
+
+    // Check compliance
+    processTranscriptForCompliance(sessionId, result.speaker, result.text).catch(
+      (err) => console.error('[AudioHandler] Compliance check error:', err)
+    )
+    // Update script checklist
+    scriptChecklist.tick(sessionId, result.text)
   }
 }
 

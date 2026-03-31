@@ -11,13 +11,31 @@
 | 3 | Real-Time AI Suggestions Engine | ✅ Complete |
 | 4 | Product Knowledge Base & Vector Search | ✅ Complete |
 | 5 | Call Session Management | ✅ Complete |
-| 6 | Agent Authentication & Multi-Tenancy | ⏳ Pending |
-| 7 | Compliance & Script Guidance | ⏳ Pending |
+| 6 | Agent Authentication & Multi-Tenancy | ✅ Complete |
+| 7 | Compliance & Script Guidance | ✅ Complete |
 | 8 | Analytics Dashboard | ⏳ Pending |
 | 9 | Performance & Reliability | ⏳ Pending |
 | 10 | Deployment & CI/CD | ⏳ Pending |
 
-## Current Phase: 6 — Agent Authentication & Multi-Tenancy
+## Current Phase: 8 — Analytics Dashboard
+
+### What Was Done in Phase 7
+- `complianceEngine.ts`: 6 compliance rules (guarantee, free insurance, investment promises, scare tactics, misrepresentation, unlicensed advice) with severity levels + corrections
+- `scriptChecklist.ts`: tracks 7 required/optional script phases per session; scores completion %
+- `ComplianceAlert.tsx`: red/yellow alert cards with flagged text and correction guidance
+- `ScriptChecklist.tsx`: visual progress checklist with % score badge
+- `audioHandler.ts` updated: calls `processTranscriptForCompliance` + `scriptChecklist.tick`
+- `/api/sessions/[id]/checklist` endpoint for live checklist progress
+- Tests for compliance engine (4 cases) and script checklist (3 cases)
+
+### What Was Done in Phase 6
+- NextAuth.js credentials provider with JWT strategy
+- `src/types/next-auth.d.ts`: session type augmentation (id, role fields)
+- `/login` page: email/password form with error handling
+- `requireAuth()`, `requireRole()` server helpers with redirect
+- `<UserMenu>` client component: avatar, name, role, sign out
+- `<Providers>`: SessionProvider wrapper for client components
+- Root layout and dashboard layout updated to include auth
 
 ### What Was Done in Phase 5
 - `/dashboard/history` page: session table with duration, transcript count, suggestions count

@@ -74,27 +74,27 @@ Success Criteria:
 
 ---
 
-### Phase 6: Agent Authentication & Multi-Tenancy
-**Status**: Pending
+### Phase 6: Agent Authentication & Multi-Tenancy ✅
+**Status**: Complete
 **Goal**: NextAuth.js login, role-based access, team management
 
 Success Criteria:
-- [ ] Email/password login via NextAuth credentials provider
-- [ ] Agent and Manager roles
-- [ ] Managers can view all agents' call history
-- [ ] Session isolation: agents only see their own active sessions
+- [x] Email/password login via NextAuth credentials provider
+- [x] Agent and Manager roles
+- [x] Managers can view all agents' call history
+- [x] Session isolation: agents only see their own active sessions
 
 ---
 
-### Phase 7: Compliance & Script Guidance
-**Status**: Pending
+### Phase 7: Compliance & Script Guidance ✅
+**Status**: Complete
 **Goal**: Real-time compliance monitoring and script adherence
 
 Success Criteria:
-- [ ] Compliance rule engine: flags forbidden phrases
-- [ ] Required disclosure prompts at key conversation moments
-- [ ] Script checklist: tracks which talking points were covered
-- [ ] Compliance score per call session
+- [x] Compliance rule engine: flags forbidden phrases
+- [x] Required disclosure prompts at key conversation moments
+- [x] Script checklist: tracks which talking points were covered
+- [x] Compliance score per call session
 
 ---
 

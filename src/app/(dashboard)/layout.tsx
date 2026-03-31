@@ -1,3 +1,5 @@
+import { UserMenu } from '@/components/ui/UserMenu'
+
 export default function DashboardLayout({
   children,
 }: {
@@ -11,10 +13,13 @@ export default function DashboardLayout({
             <span className="text-xl font-bold text-brand-700">
               Life Insurance Copilot
             </span>
-            <div className="flex gap-4 text-sm text-gray-600">
-              <a href="/dashboard" className="hover:text-brand-600">Dashboard</a>
-              <a href="/dashboard/call" className="hover:text-brand-600">Start Call</a>
-              <a href="/dashboard/history" className="hover:text-brand-600">History</a>
+            <div className="flex items-center gap-4">
+              <div className="flex gap-4 text-sm text-gray-600">
+                <a href="/dashboard" className="hover:text-brand-600">Dashboard</a>
+                <a href="/dashboard/call" className="hover:text-brand-600">Start Call</a>
+                <a href="/dashboard/history" className="hover:text-brand-600">History</a>
+              </div>
+              <UserMenu />
             </div>
           </div>
         </div>
