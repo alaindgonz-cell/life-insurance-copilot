@@ -79,7 +79,7 @@ export function handleAudioChunk(
 
   try {
     const audioBuffer = Buffer.from(data, 'base64')
-    session.deepgramConnection.send(audioBuffer)
+    session.deepgramConnection.send(audioBuffer as unknown as string)
   } catch (error) {
     console.error(`[AudioHandler] Error sending audio to Deepgram for ${sessionId}:`, error)
   }

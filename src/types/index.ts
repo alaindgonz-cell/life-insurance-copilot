@@ -32,10 +32,10 @@ export interface CallSession {
 
 export interface WSMessage {
   type: string
-  payload: Record<string, unknown>
+  payload: unknown
 }
 
-export interface AudioChunkMessage extends WSMessage {
+export interface AudioChunkMessage {
   type: 'audio_chunk'
   payload: {
     sessionId: string
@@ -44,17 +44,17 @@ export interface AudioChunkMessage extends WSMessage {
   }
 }
 
-export interface TranscriptMessage extends WSMessage {
+export interface TranscriptMessage {
   type: 'transcript'
   payload: TranscriptSegment
 }
 
-export interface SuggestionMessage extends WSMessage {
+export interface SuggestionMessage {
   type: 'suggestion'
   payload: AISuggestion
 }
 
-export interface SessionStartMessage extends WSMessage {
+export interface SessionStartMessage {
   type: 'session_start'
   payload: {
     sessionId: string
@@ -62,7 +62,7 @@ export interface SessionStartMessage extends WSMessage {
   }
 }
 
-export interface SessionEndMessage extends WSMessage {
+export interface SessionEndMessage {
   type: 'session_end'
   payload: {
     sessionId: string
